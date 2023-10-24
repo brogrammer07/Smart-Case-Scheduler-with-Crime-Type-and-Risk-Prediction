@@ -10,6 +10,7 @@ import { Case, CaseForm } from "@/types/case";
 import { caseTypes } from "@/constants";
 import { useSession } from "next-auth/react";
 import OutlinedInput from "@mui/material/OutlinedInput";
+
 const style = {
   position: "absolute" as "absolute",
   top: "50%",
@@ -18,6 +19,7 @@ const style = {
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
+  width: "40%",
 };
 
 type AddCaseModalProps = {
@@ -36,8 +38,6 @@ const AddCaseModal = ({
   handleAddAfter,
 }: AddCaseModalProps) => {
   const { data: session } = useSession();
-  const [materialDamage, setMaterialDamage] = useState<boolean>(false);
-  const [physicalDamage, setPhysicalDamage] = useState<boolean>(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [formData, setFormData] = useState<CaseForm>({
@@ -46,8 +46,8 @@ const AddCaseModal = ({
     evidence: false,
     fir_no: "",
     age: 0,
-    material_damage: "No",
-    physical_damage: "No",
+    material_damage: "",
+    physical_damage: "",
     summary: "",
     time: "",
   });
@@ -58,8 +58,8 @@ const AddCaseModal = ({
       evidence: false,
       fir_no: "",
       age: 0,
-      material_damage: "No",
-      physical_damage: "No",
+      material_damage: "",
+      physical_damage: "",
       summary: "",
       time: "",
     });
@@ -71,36 +71,7 @@ const AddCaseModal = ({
       setValidationError("Please enter FIR No.");
       return false;
     }
-    if (formData.case_type === "") {
-      setValidationError("Please select case type");
-      return false;
-    }
-    if (formData.date === "") {
-      setValidationError("Please enter date");
-      return false;
-    }
-    if (formData.time === "") {
-      setValidationError("Please enter time");
-      return false;
-    }
-    if (formData.age === 0) {
-      setValidationError("Please enter age");
-      return false;
-    }
-    if (
-      materialDamage === true &&
-      (formData.material_damage === "No" || formData.material_damage === "")
-    ) {
-      setValidationError("Please enter material damage amount");
-      return false;
-    }
-    if (
-      physicalDamage === true &&
-      (formData.physical_damage === "No" || formData.physical_damage === "")
-    ) {
-      setValidationError("Please enter physical damage duration");
-      return false;
-    }
+
     if (formData.summary === "") {
       setValidationError("Please enter summary");
       return false;
@@ -115,9 +86,11 @@ const AddCaseModal = ({
     if (validateForm()) {
       console.log(formData);
       const formDataWithUser = {
-        ...formData,
+        fir_no: formData.fir_no,
+        summary: formData.summary,
         ps_code: session?.user?.name,
       };
+
       try {
         const response = await fetch("/api/case", {
           method: "POST",
@@ -125,6 +98,8 @@ const AddCaseModal = ({
         });
         if (response.ok) {
           const data = await response.json();
+          console.log("Data", data);
+
           if (handleAddAfter) handleAddAfter(data);
           resetForm();
         }
@@ -140,8 +115,6 @@ const AddCaseModal = ({
 
   useEffect(() => {
     if (type === "view" && data) {
-      setMaterialDamage(data.material_damage === "No" ? false : true);
-      setPhysicalDamage(data.physical_damage === "No" ? false : true);
       setFormData(data);
     }
   }, [data]);
@@ -158,12 +131,11 @@ const AddCaseModal = ({
           Add New Case
         </Typography>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-5">
-          <div className="grid grid-cols-3 gap-3">
+          {type == "add" && (
             <div className="">
               <InputLabel id="fir-no-label">FIR No.</InputLabel>
               <OutlinedInput
-                className="w-full"
-                disabled={type === "view"}
+                className="w-full capitalize"
                 id="fir-no"
                 label="fir-no-label"
                 placeholder="E.g. 288/23"
@@ -173,124 +145,120 @@ const AddCaseModal = ({
                 }
               />
             </div>
-            <div className="">
-              <InputLabel id="case-type-label">Case Type</InputLabel>
-              <Select
-                disabled={type === "view"}
-                id="case-type"
-                labelId="case-type-label"
-                value={formData.case_type}
-                onChange={(e) =>
-                  setFormData({ ...formData, case_type: e.target.value })
-                }
-                label="Case Type"
-                className="w-full"
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {caseTypes.map((caseType) => (
-                  <MenuItem key={caseType} value={caseType}>
-                    {caseType}
+          )}
+          {type === "view" && (
+            <div className="grid grid-cols-3 gap-3">
+              <div className="">
+                <InputLabel id="fir-no-label">FIR No.</InputLabel>
+                <OutlinedInput
+                  className="w-full capitalize"
+                  disabled={type === "view"}
+                  id="fir-no"
+                  label="fir-no-label"
+                  placeholder="E.g. 288/23"
+                  value={formData.fir_no}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fir_no: e.target.value })
+                  }
+                />
+              </div>
+              <div className="">
+                <InputLabel id="case-type-label">Case Type</InputLabel>
+                <Select
+                  disabled={true}
+                  id="case-type"
+                  labelId="case-type-label"
+                  value={formData.case_type}
+                  onChange={(e) =>
+                    setFormData({ ...formData, case_type: e.target.value })
+                  }
+                  label="Case Type"
+                  className="w-full capitalize"
+                >
+                  <MenuItem value="">
+                    <em>None</em>
                   </MenuItem>
-                ))}
-              </Select>
-            </div>
-            <div className="">
-              <InputLabel id="date-label">Date</InputLabel>
-              <OutlinedInput
-                disabled={type === "view"}
-                id="date"
-                label="date-label"
-                className="w-full"
-                placeholder="E.g. DD/MM/YYYY"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-              />
-            </div>
-            <div className="">
-              <InputLabel id="time-label">Time</InputLabel>
-              <OutlinedInput
-                disabled={type === "view"}
-                id="time"
-                label="time-label"
-                className="w-full"
-                placeholder="E.g. HH:MM"
-                value={formData.time}
-                onChange={(e) =>
-                  setFormData({ ...formData, time: e.target.value })
-                }
-              />
-            </div>
-            <div className="">
-              <InputLabel id="age-label">Age</InputLabel>
-              <OutlinedInput
-                className="w-full"
-                disabled={type === "view"}
-                type="number"
-                id="age"
-                label="age-label"
-                placeholder="E.g. 23"
-                value={formData.age}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: parseInt(e.target.value) })
-                }
-              />
-            </div>
+                  {caseTypes.map((caseType) => (
+                    <MenuItem key={caseType} value={caseType}>
+                      {caseType}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </div>
+              <div className="">
+                <InputLabel id="date-label">Date</InputLabel>
+                <OutlinedInput
+                  disabled={true}
+                  id="date"
+                  label="date-label"
+                  className="w-full capitalize"
+                  placeholder=""
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
+                />
+              </div>
+              <div className="">
+                <InputLabel id="time-label">Time</InputLabel>
+                <OutlinedInput
+                  disabled={true}
+                  id="time"
+                  label="time-label"
+                  className="w-full capitalize"
+                  placeholder=""
+                  value={formData.time}
+                  onChange={(e) =>
+                    setFormData({ ...formData, time: e.target.value })
+                  }
+                />
+              </div>
+              <div className="">
+                <InputLabel id="age-label">Age</InputLabel>
+                <OutlinedInput
+                  className="w-full capitalize"
+                  disabled={true}
+                  type="number"
+                  id="age"
+                  label="age-label"
+                  placeholder="E.g. 23"
+                  value={formData.age}
+                  onChange={(e) =>
+                    setFormData({ ...formData, age: parseInt(e.target.value) })
+                  }
+                />
+              </div>
 
-            <div className="">
-              <InputLabel id="evidence-label">Evidence</InputLabel>
-              <Select
-                className="w-full"
-                disabled={type === "view"}
-                value={formData.evidence ? "Yes" : "No"}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    evidence: e.target.value === "Yes" ? true : false,
-                  })
-                }
-                id="evidence"
-                label="evidence-label"
-              >
-                <MenuItem value="Yes">Yes</MenuItem>
-                <MenuItem value="No">No</MenuItem>
-              </Select>
-            </div>
-            <div className="">
-              <InputLabel id="material-damage-label">
-                Material Damage
-              </InputLabel>
-              <Select
-                className="w-full"
-                disabled={type === "view"}
-                value={materialDamage === true ? "Yes" : "No"}
-                onChange={(e) => {
-                  setMaterialDamage(e.target.value === "Yes" ? true : false);
-                  if (e.target.value === "No")
-                    setFormData({ ...formData, material_damage: "No" });
-                  else setFormData({ ...formData, material_damage: "" });
-                }}
-                id="material-damage"
-                label="material-damage-label"
-              >
-                <MenuItem value="Yes">Yes</MenuItem>
-                <MenuItem value="No">No</MenuItem>
-              </Select>
-            </div>
-            {materialDamage && (
+              <div className="">
+                <InputLabel id="evidence-label">Evidence</InputLabel>
+                <Select
+                  className="w-full capitalize"
+                  disabled={true}
+                  value={formData.evidence ? "Yes" : "No"}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      evidence: e.target.value === "Yes" ? true : false,
+                    })
+                  }
+                  id="evidence"
+                  label="evidence-label"
+                >
+                  <MenuItem value="Yes">Yes</MenuItem>
+                  <MenuItem value="No">No</MenuItem>
+                </Select>
+              </div>
+
               <div className="">
                 <InputLabel id="material-damage-label">
-                  Material Damage Amount
+                  Material Damage
                 </InputLabel>
                 <OutlinedInput
-                  className="w-full"
-                  disabled={type === "view"}
+                  className="w-full capitalize"
+                  disabled={true}
                   id="material-damage-amount"
                   label="material-damage-label"
-                  placeholder="E.g. 10000"
+                  placeholder=""
                   value={formData.material_damage}
                   onChange={(e) =>
                     setFormData({
@@ -300,39 +268,17 @@ const AddCaseModal = ({
                   }
                 />
               </div>
-            )}
-            <div className="">
-              <InputLabel id="physical-damage-label">
-                Physical Damage
-              </InputLabel>
-              <Select
-                className="w-full"
-                disabled={type === "view"}
-                value={physicalDamage === true ? "Yes" : "No"}
-                onChange={(e) => {
-                  setPhysicalDamage(e.target.value === "Yes" ? true : false);
-                  if (e.target.value === "No")
-                    setFormData({ ...formData, physical_damage: "No" });
-                  else setFormData({ ...formData, physical_damage: "" });
-                }}
-                id="physical-damage"
-                label="physical-damage-label"
-              >
-                <MenuItem value="Yes">Yes</MenuItem>
-                <MenuItem value="No">No</MenuItem>
-              </Select>
-            </div>
-            {physicalDamage && (
+
               <div className="">
                 <InputLabel id="physical-damage-label">
-                  Physical Damage Amount
+                  Physical Damage
                 </InputLabel>
                 <OutlinedInput
-                  className="w-full"
-                  disabled={type === "view"}
+                  className="w-full capitalize"
+                  disabled={true}
                   id="physical-damage-duration"
                   label="physical-damage-label"
-                  placeholder="E.g. 2 weeks or 1 month"
+                  placeholder=""
                   value={formData.physical_damage}
                   onChange={(e) =>
                     setFormData({
@@ -342,12 +288,12 @@ const AddCaseModal = ({
                   }
                 />
               </div>
-            )}
-          </div>
+            </div>
+          )}
           <div className="">
             <InputLabel id="summary-label">Summary</InputLabel>
             <OutlinedInput
-              className="w-full"
+              className="w-full "
               disabled={type === "view"}
               rows={3}
               multiline
