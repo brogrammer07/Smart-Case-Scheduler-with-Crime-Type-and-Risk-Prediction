@@ -2,6 +2,7 @@ import { prompt } from "@/constants";
 import Case from "@/models/case";
 import User from "@/models/user";
 import { connectToDB } from "@/utils/database";
+import { calculateScore } from "@/utils/score";
 
 export const POST = async (req: Request) => {
   try {
@@ -28,7 +29,7 @@ export const POST = async (req: Request) => {
     const gptRes = await res.json();
 
     const lines = gptRes.choices[0].message.content.split("\n");
-    console.log("lines", lines);
+    // console.log("lines", lines);
 
     var case_type = "";
     var evidence = false;
@@ -69,13 +70,13 @@ export const POST = async (req: Request) => {
         }
       }
     });
-    console.log("Crime Type:", case_type);
-    console.log("Evidence:", evidence);
-    console.log("Victim Age:", age);
-    console.log("Physical Damage:", physical_damage);
-    console.log("Material Damage:", material_damage);
-    console.log("Date of Crime:", date);
-    console.log("Time of Crime:", time);
+    // console.log("Crime Type:", case_type);
+    // console.log("Evidence:", evidence);
+    // console.log("Victim Age:", age);
+    // console.log("Physical Damage:", physical_damage);
+    // console.log("Material Damage:", material_damage);
+    // console.log("Date of Crime:", date);
+    // console.log("Time of Crime:", time);
 
     await connectToDB();
     const user = await User.findOne({ ps_code: ps_code });
@@ -86,7 +87,13 @@ export const POST = async (req: Request) => {
     if (existingCase) {
       return new Response("Case already exists", { status: 409 });
     }
-    const priority_score = 80;
+    const priority_score = calculateScore({
+      case_type,
+      evidence,
+      age,
+      physical_damage,
+      material_damage,
+    });
     const frequency = 1;
     const status = "Active";
     const newCase = new Case({
@@ -116,7 +123,7 @@ export const POST = async (req: Request) => {
 export const GET = async (req: Request) => {
   try {
     await connectToDB();
-    const cases = await Case.find();
+    const cases = await Case.find().sort({ priority_score: -1 });
     return new Response(JSON.stringify(cases), { status: 200 });
   } catch (error) {
     return new Response("Failed to fetch cases", { status: 500 });
