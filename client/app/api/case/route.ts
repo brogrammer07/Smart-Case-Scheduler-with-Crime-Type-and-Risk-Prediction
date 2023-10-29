@@ -70,13 +70,13 @@ export const POST = async (req: Request) => {
         }
       }
     });
-    // console.log("Crime Type:", case_type);
-    // console.log("Evidence:", evidence);
-    // console.log("Victim Age:", age);
-    // console.log("Physical Damage:", physical_damage);
-    // console.log("Material Damage:", material_damage);
-    // console.log("Date of Crime:", date);
-    // console.log("Time of Crime:", time);
+    console.log("Crime Type:", case_type);
+    console.log("Evidence:", evidence);
+    console.log("Victim Age:", age);
+    console.log("Physical Damage:", physical_damage);
+    console.log("Material Damage:", material_damage);
+    console.log("Date of Crime:", date);
+    console.log("Time of Crime:", time);
 
     await connectToDB();
     const user = await User.findOne({ ps_code: ps_code });

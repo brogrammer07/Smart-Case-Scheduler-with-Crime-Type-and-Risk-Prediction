@@ -23,8 +23,8 @@ const SingleCase = ({ data, sr_no, handleDeleteAfter }: SingleCaseProps) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const handleDelete = async () => {
-    const hasConfirmed = confirm("Are you sure you want to delete this case?");
+  const handleDelete = async (type: string) => {
+    const hasConfirmed = confirm(`Are you sure you want to ${type} this case?`);
     if (hasConfirmed) {
       try {
         const res = await fetch(`api/case/${data._id.toString()}`, {
@@ -109,8 +109,10 @@ const SingleCase = ({ data, sr_no, handleDeleteAfter }: SingleCaseProps) => {
                 "aria-labelledby": "basic-button",
               }}
             >
-              <MenuItem onClick={handleDelete}>Mark Complete</MenuItem>
-              <MenuItem onClick={handleDelete}>Delete</MenuItem>
+              <MenuItem onClick={() => handleDelete("complete")}>
+                Mark Complete
+              </MenuItem>
+              <MenuItem onClick={() => handleDelete("delete")}>Delete</MenuItem>
             </Menu>
           </div>
         </div>
