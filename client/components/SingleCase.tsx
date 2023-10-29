@@ -109,7 +109,7 @@ const SingleCase = ({ data, sr_no, handleDeleteAfter }: SingleCaseProps) => {
                 "aria-labelledby": "basic-button",
               }}
             >
-              <MenuItem onClick={handleClose}>Mark Complete</MenuItem>
+              <MenuItem onClick={handleDelete}>Mark Complete</MenuItem>
               <MenuItem onClick={handleDelete}>Delete</MenuItem>
             </Menu>
           </div>
