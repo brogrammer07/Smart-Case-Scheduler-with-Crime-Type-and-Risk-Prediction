@@ -102,9 +102,11 @@ const AddCaseModal = ({
 
           if (handleAddAfter) handleAddAfter(data);
           resetForm();
+        } else {
+          setValidationError("Something went wrong. Please try again.");
         }
       } catch (error) {
-        console.log(error);
+        console.log("ERROR OCCUREDD", error);
         setValidationError("Something went wrong. Please try again.");
       } finally {
         setLoading(false);
@@ -128,7 +130,7 @@ const AddCaseModal = ({
     >
       <Box sx={style}>
         <Typography id="modal-modal-title" variant="h6" component="h2">
-          Add New Case
+          {type === "add" ? "Add New Case" : "Case"}
         </Typography>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-5">
           {type == "add" && (

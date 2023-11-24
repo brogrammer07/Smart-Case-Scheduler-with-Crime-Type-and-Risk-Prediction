@@ -29,7 +29,7 @@ export const POST = async (req: Request) => {
     const gptRes = await res.json();
 
     const lines = gptRes.choices[0].message.content.split("\n");
-    // console.log("lines", lines);
+    console.log("lines", lines);
 
     var case_type = "";
     var evidence = false;
@@ -114,7 +114,7 @@ export const POST = async (req: Request) => {
     await newCase.save();
     return new Response(JSON.stringify(newCase), { status: 201 });
   } catch (error) {
-    console.log(error);
+    console.log("ERROR OCCURRED", error);
 
     return new Response("Failed to add new case", { status: 500 });
   }
